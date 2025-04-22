@@ -24,14 +24,13 @@
       width: 100%;
       height: 100%;
       display: block;
-      cursor: pointer; /* Ajoute un curseur pointeur pour indiquer que c'est cliquable */
+      cursor: pointer;
     }
     #error-message {
       font-family: sans-serif;
       text-align: center;
       padding: 20px;
       color: #e74c3c;
-      display: none;
       position: absolute;
       top: 50%;
       left: 50%;
@@ -49,80 +48,81 @@
   </div>
   <div id="error-message"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@rive-app/canvas-lite@1.0.102/rive.min.js"></script>
+  <!-- Chargement de la dernière version stable -->
+  <script src="https://unpkg.com/@rive-app/canvas@2.7.0"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const canvas = document.getElementById('canvas');
       const errorMessage = document.getElementById('error-message');
       
-      // Fonction pour ajuster la taille du canvas
-      function resizeCanvas() {
+      // Configuration de la taille du canvas
+      function setCanvasSize() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-        
-        // Si l'instance Rive existe déjà, redimensionner sa surface de dessin
-        if (window.riveInstance && window.riveInstance.resizeDrawingSurfaceToCanvas) {
-          window.riveInstance.resizeDrawingSurfaceToCanvas();
-        }
       }
       
-      // Initialiser la taille du canvas
-      resizeCanvas();
+      setCanvasSize();
       
-      try {
-        // Vérifier que la bibliothèque Rive est chargée
-        if (typeof rive === 'undefined') {
-          throw new Error("La bibliothèque Rive n'a pas été chargée");
-        }
-        
-        console.log("Tentative de chargement du fichier:", 'koolchaine_v2.riv');
-        
-        // Créer l'instance Rive
-        const r = new rive.Rive({
-          src: 'koolchaine_v2.riv',
-          canvas: canvas,
-          autoplay: true,
-          stateMachines: "State Machine", // Utiliser explicitement la state machine
-          onLoad: () => {
-            console.log("Animation chargée avec succès!");
-            window.riveInstance = r;
-            
-            // Récupérer les inputs disponibles sur la state machine
-            const inputs = r.stateMachineInputs("State Machine 1");
-            console.log("Inputs disponibles:", inputs);
-            
-            // Stocker le trigger pour l'utiliser lors du clic
-            const trigger = inputs.find(input => input.name === "Trigger 1");
-            if (trigger) {
-              console.log("Trigger trouvé, il sera activé au clic");
-              
-              // Ajouter l'événement de clic sur le canvas
-              canvas.addEventListener('click', () => {
-                console.log("Activation du trigger");
-                trigger.fire();
-              });
-            } else {
-              console.warn("Trigger 'Trigger 1' non trouvé");
-            }
-            
-            // S'assurer que le canvas est correctement dimensionné
-            resizeCanvas();
-          },
-          onLoadError: (err) => {
-            console.error("Erreur de chargement du fichier:", err);
-            errorMessage.textContent = `Erreur de chargement du fichier Rive: ${err}`;
-            errorMessage.style.display = "block";
+      // Attendre un peu pour être sûr que la bibliothèque est bien chargée
+      setTimeout(() => {
+        try {
+          if (typeof rive === 'undefined') {
+            throw new Error("La bibliothèque Rive n'a pas été chargée correctement");
           }
-        });
-        
-        // Gérer le redimensionnement de la fenêtre
-        window.addEventListener('resize', resizeCanvas);
-        
-      } catch (error) {
-        console.error("Erreur d'initialisation:", error);
-        errorMessage.textContent = `Erreur: ${error.message}`;
-        errorMessage.style.display = "block";
-      }
+          
+          console.log("Tentative de chargement de Rive...");
+          
+          // Créer une nouvelle instance Rive
+          const r = new rive.Rive({
+            src: 'koolchaine_v2.riv',
+            canvas: canvas,
+            autoplay: true,
+            layout: new rive.Layout({
+              fit: rive.Fit.Cover,
+              alignment: rive.Alignment.Center
+            }),
+            onLoad: () => {
+              console.log("Animation chargée avec succès!");
+              
+              // Vérifier les state machines disponibles
+              if (r.stateMachineNames && r.stateMachineNames.length > 0) {
+                console.log("State machines:", r.stateMachineNames);
+                
+                // Activer la state machine
+                r.stateMachineNames.forEach(name => {
+                  r.startStateMachine(name);
+                  
+                  // Ajouter l'événement de clic
+                  canvas.addEventListener('click', () => {
+                    const inputs = r.stateMachineInputs(name);
+                    const trigger = inputs.find(input => input.name === "Trigger 1");
+                    if (trigger) {
+                      console.log("Activation du trigger");
+                      trigger.fire();
+                    }
+                  });
+                });
+              }
+            },
+            onLoadError: (err) => {
+              console.error("Erreur de chargement:", err);
+              errorMessage.textContent = `Erreur de chargement du fichier Rive: ${err}`;
+            }
+          });
+          
+          // Gérer le redimensionnement
+          window.addEventListener('resize', () => {
+            setCanvasSize();
+            if (r.layout) {
+              r.layout.updateLayout();
+            }
+          });
+          
+        } catch (error) {
+          console.error("Erreur d'initialisation:", error);
+          errorMessage.textContent = `Erreur: ${error.message}`;
+        }
+      }, 500);
     });
   </script>
 </body>
