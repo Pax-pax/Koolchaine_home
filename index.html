@@ -3,39 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Koolchaine</title>
+    <title>Koolchaine</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+        body, html {
             margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
             background-color: #f0f0f0;
         }
-        .container {
+        #canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: Arial, sans-serif;
             text-align: center;
+        }
+        #error {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: Arial, sans-serif;
+            text-align: center;
+            color: #e74c3c;
             padding: 20px;
             background-color: white;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
-            color: #333;
-        }
-        p {
-            color: #666;
+            display: none;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Koolchaine</h1>
-        <p>Cette page de test confirme que votre configuration fonctionne correctement.</p>
-        <p>Date et heure du test : <span id="datetime"></span></p>
+    <div id="canvas"></div>
+    <div id="loading">Chargement de l'animation...</div>
+    <div id="error">
+        <h2>Erreur de chargement</h2>
+        <p id="error-message"></p>
+        <p>Vérifiez que le fichier .riv est correctement nommé et présent dans le dépôt.</p>
     </div>
-
+    
+    <script src="https://unpkg.com/@rive-app/canvas@latest"></script>
     <script>
-        // Affiche la date et l'heure actuelles
-        document
+        document.addEventListener('DOMContentLoaded', function() {
+            const loading = document.getElementById('loading');
+            const errorDiv = document.getElementById('error');
+            const errorMessage = document.getElementById('error-message');
+
+            // Vérifier que la bibliothèque Rive est chargée
+            if (typeof rive === 'undefined') {
+                loading.style.display = 'none';
+                errorDiv.style.display = 'block';
+                errorMessage.textContent = "La bibliothèque Rive n'a pas pu être chargée.";
+                return;
+            }
+
+            try {
+                // Chemin vers le fichier .riv
+                const rivePath = 'koolchaine_v1.riv';
+                
+                // Journal pour le débogage
+                console.log('Tentative de chargement du fichier Rive:', rivePath);
+                
+                // Initialisation de Rive
+                const r = new rive.Rive({
+                    src: rivePath,
+                    canvas: document.getElementById('canvas'),
+                    autoplay: true,
+                    onLoad: () => {
+                        console.log('Animation Rive chargée avec succès');
+                        loading.style.display = 'none';
+                    },
+                    onLoadError: (err) => {
+                        console.error('Erreur lors du chargement du fichier Rive:', err);
+                        loading.style.display = 'none';
+                        errorDiv.style.display = 'block';
+                        errorMessage.textContent = "Impossible de charger l'animation: " + err.message;
+                    }
+                });
+                
+                // Vérifier si l'animation est valide après un délai
+                setTimeout(() => {
+                    if (!r.isLoaded) {
+                        console.warn('L\'animation n\'a pas été chargée après le délai');
+                        loading.style.display = 'none';
+                        errorDiv.style.display = 'block';
+                        errorMessage.textContent = "Le chargement de l'animation a pris trop de temps.";
+                    }
+                }, 5000);
+                
+            } catch (error) {
+                console.error('Erreur lors de l\'initialisation de Rive:', error);
+                loading.style.display = 'none';
+                errorDiv.style.display = 'block';
+                errorMessage.textContent = "Erreur: " + error.message;
+            }
+        });
+    </script>
+</body>
+</html>
