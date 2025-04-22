@@ -58,12 +58,12 @@
           canvas: canvas,
           autoplay: true,
           // Spécifiez ici le nom de votre state machine
-          stateMachines: "NOM_DE_VOTRE_STATE_MACHINE",
+          stateMachines: "State Machine",
           onLoad: () => {
             console.log("Animation chargée avec succès!");
             
             // Récupérer les inputs disponibles sur la state machine
-            const inputs = r.stateMachineInputs("NOM_DE_VOTRE_STATE_MACHINE");
+            const inputs = r.stateMachineInputs("State Machine");
             console.log("Inputs disponibles:", inputs);
             
             // Exemple: attacher un événement de clic sur le canvas
