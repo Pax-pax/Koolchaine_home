@@ -16,9 +16,9 @@
     #canvas-container {
       width: 100%;
       height: 100%;
-      position: absolute;
-      top: 0;
-      left: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
     canvas {
       width: 100%;
@@ -31,14 +31,6 @@
       padding: 20px;
       color: #e74c3c;
       display: none;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      z-index: 10;
     }
   </style>
 </head>
@@ -48,28 +40,16 @@
   </div>
   <div id="error-message"></div>
 
+  <!-- Utiliser exactement la même bibliothèque qui fonctionnait avant -->
   <script src="https://cdn.jsdelivr.net/npm/@rive-app/canvas-lite@1.0.102/rive.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const canvas = document.getElementById('canvas');
       const errorMessage = document.getElementById('error-message');
       
-      // Fonction pour ajuster la taille du canvas
-      function resizeCanvas() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        
-        // Si l'instance Rive existe déjà, redimensionner sa surface de dessin
-        if (window.riveInstance) {
-          window.riveInstance.resizeDrawingSurfaceToCanvas();
-        }
-      }
-      
-      // Redimensionner le canvas au chargement
-      resizeCanvas();
-      
-      // Redimensionner le canvas lors du redimensionnement de la fenêtre
-      window.addEventListener('resize', resizeCanvas);
+      // Définir les dimensions du canvas pour qu'elles correspondent à la taille de la fenêtre
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
       
       try {
         // Vérifier que la bibliothèque Rive est chargée
@@ -83,33 +63,20 @@
           src: 'koolchaine_v1.riv',
           canvas: canvas,
           autoplay: true,
-          fit: rive.Fit.COVER, // Couvre toute la surface disponible
-          alignment: rive.Alignment.CENTER, // Centre l'animation
           onLoad: () => {
             console.log("Animation chargée avec succès!");
-            // Garder une référence pour pouvoir redimensionner plus tard
-            window.riveInstance = r;
-            
-            // Afficher toutes les state machines disponibles (pour debug)
-            const stateMachines = r.stateMachineNames;
-            console.log("State machines disponibles:", stateMachines);
-            
-            // Si vous avez au moins une state machine, afficher ses inputs
-            if (stateMachines.length > 0) {
-              console.log(`State machine trouvée: "${stateMachines[0]}"`);
-              // Décommenter ci-dessous pour utiliser la state machine
-              // const inputs = r.stateMachineInputs(stateMachines[0]);
-              // console.log(`Inputs disponibles:`, inputs);
-            }
-            
-            // S'assurer que le dimensionnement est correct après chargement
-            r.resizeDrawingSurfaceToCanvas();
           },
           onLoadError: (err) => {
             console.error("Erreur de chargement du fichier:", err);
             errorMessage.textContent = "Erreur de chargement du fichier Rive. Vérifiez que 'koolchaine_v1.riv' existe.";
             errorMessage.style.display = "block";
           }
+        });
+        
+        // Gérer le redimensionnement de la fenêtre
+        window.addEventListener('resize', () => {
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
         });
         
       } catch (error) {
