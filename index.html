@@ -21,9 +21,8 @@
       align-items: center;
     }
     canvas {
-      width: 100%;
-      height: 100%;
-      display: block;
+      max-width: 100%;
+      max-height: 100%;
     }
     #error-message {
       font-family: sans-serif;
@@ -36,20 +35,15 @@
 </head>
 <body>
   <div id="canvas-container">
-    <canvas id="canvas"></canvas>
+    <canvas id="canvas" width="800" height="600"></canvas>
   </div>
   <div id="error-message"></div>
 
-  <!-- Utiliser exactement la même bibliothèque qui fonctionnait avant -->
   <script src="https://cdn.jsdelivr.net/npm/@rive-app/canvas-lite@1.0.102/rive.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const canvas = document.getElementById('canvas');
       const errorMessage = document.getElementById('error-message');
-      
-      // Définir les dimensions du canvas pour qu'elles correspondent à la taille de la fenêtre
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
       
       try {
         // Vérifier que la bibliothèque Rive est chargée
@@ -63,20 +57,35 @@
           src: 'koolchaine_v1.riv',
           canvas: canvas,
           autoplay: true,
+          // Spécifiez ici le nom de votre state machine
+          stateMachines: "NOM_DE_VOTRE_STATE_MACHINE",
           onLoad: () => {
             console.log("Animation chargée avec succès!");
+            
+            // Récupérer les inputs disponibles sur la state machine
+            const inputs = r.stateMachineInputs("NOM_DE_VOTRE_STATE_MACHINE");
+            console.log("Inputs disponibles:", inputs);
+            
+            // Exemple: attacher un événement de clic sur le canvas
+            canvas.addEventListener('click', (e) => {
+              // Exemple: déclencher un trigger dans la state machine
+              const trigger = inputs.find(input => input.name === "NOM_DU_TRIGGER");
+              if (trigger) {
+                trigger.fire();
+              }
+              
+              // OU définir une valeur numérique/booléenne
+              const numberInput = inputs.find(input => input.name === "NOM_DU_NUMBER_INPUT");
+              if (numberInput) {
+                numberInput.value = 1; // Ou toute autre valeur
+              }
+            });
           },
           onLoadError: (err) => {
             console.error("Erreur de chargement du fichier:", err);
             errorMessage.textContent = "Erreur de chargement du fichier Rive. Vérifiez que 'koolchaine_v1.riv' existe.";
             errorMessage.style.display = "block";
           }
-        });
-        
-        // Gérer le redimensionnement de la fenêtre
-        window.addEventListener('resize', () => {
-          canvas.width = window.innerWidth;
-          canvas.height = window.innerHeight;
         });
         
       } catch (error) {
