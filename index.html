@@ -51,7 +51,7 @@
           throw new Error("La bibliothèque Rive n'a pas été chargée");
         }
         
-        console.log("Tentative de chargement du fichier:", 'koolchaine_v1.riv');
+        console.log("Tentative de chargement du fichier:", 'koolchaine_v2.riv');
         
         const r = new rive.Rive({
           src: 'koolchaine_v1.riv',
@@ -83,7 +83,7 @@
           },
           onLoadError: (err) => {
             console.error("Erreur de chargement du fichier:", err);
-            errorMessage.textContent = "Erreur de chargement du fichier Rive. Vérifiez que 'koolchaine_v1.riv' existe.";
+            errorMessage.textContent = "Erreur de chargement du fichier Rive. Vérifiez que 'koolchaine_v2.riv' existe.";
             errorMessage.style.display = "block";
           }
         });
