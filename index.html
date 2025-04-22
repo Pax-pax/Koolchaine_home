@@ -24,6 +24,7 @@
       width: 100%;
       height: 100%;
       display: block;
+      cursor: pointer; /* Ajoute un curseur pointeur pour indiquer que c'est cliquable */
     }
     #error-message {
       font-family: sans-serif;
@@ -81,30 +82,27 @@
           src: 'koolchaine_v2.riv',
           canvas: canvas,
           autoplay: true,
+          stateMachines: "State Machine 1", // Utiliser explicitement la state machine
           onLoad: () => {
             console.log("Animation chargée avec succès!");
             window.riveInstance = r;
             
-            // Vérifier si le fichier a des state machines
-            if (r.stateMachineNames && r.stateMachineNames.length > 0) {
-              console.log("State machines disponibles:", r.stateMachineNames);
+            // Récupérer les inputs disponibles sur la state machine
+            const inputs = r.stateMachineInputs("State Machine 1");
+            console.log("Inputs disponibles:", inputs);
+            
+            // Stocker le trigger pour l'utiliser lors du clic
+            const trigger = inputs.find(input => input.name === "Trigger 1");
+            if (trigger) {
+              console.log("Trigger trouvé, il sera activé au clic");
               
-              // Si vous voulez utiliser la première state machine
-              const firstStateMachine = r.stateMachineNames[0];
-              
-              // Optionnel: afficher tous les inputs disponibles
-              try {
-                const inputs = r.stateMachineInputs(firstStateMachine);
-                if (inputs && inputs.length > 0) {
-                  console.log(`Inputs disponibles pour ${firstStateMachine}:`, inputs);
-                  
-                  // Vous pouvez activer un trigger ici si nécessaire
-                  // const trigger = inputs.find(input => input.name === "Trigger 1");
-                  // if (trigger) trigger.fire();
-                }
-              } catch (e) {
-                console.log("Pas d'inputs disponibles ou erreur:", e);
-              }
+              // Ajouter l'événement de clic sur le canvas
+              canvas.addEventListener('click', () => {
+                console.log("Activation du trigger");
+                trigger.fire();
+              });
+            } else {
+              console.warn("Trigger 'Trigger 1' non trouvé");
             }
             
             // S'assurer que le canvas est correctement dimensionné
