@@ -13,7 +13,7 @@
             overflow: hidden;
             background-color: #f0f0f0;
         }
-        #canvas {
+        #rive-canvas {
             width: 100%;
             height: 100%;
             display: block;
@@ -33,75 +33,99 @@
     </style>
 </head>
 <body>
-    <div id="canvas"></div>
     <div id="status">Chargement...</div>
-
-    <script src="https://unpkg.com/@rive-app/canvas@1.0.102"></script>
+    <canvas id="rive-canvas"></canvas>
+    
+    <!-- Utilisation de la dernière bibliothèque stable -->
+    <script src="https://unpkg.com/@rive-app/canvas-advanced@2.7.0"></script>
     <script>
         const statusElement = document.getElementById('status');
+        const canvas = document.getElementById('rive-canvas');
         
-        // Fonction pour vérifier si un fichier existe
-        function checkFileExists(url) {
-            return new Promise((resolve, reject) => {
-                fetch(url, { method: 'HEAD' })
-                    .then(response => {
-                        if (response.ok) {
-                            resolve(true);
-                        } else {
-                            reject(new Error(`Le fichier ${url} n'existe pas (statut: ${response.status})`));
-                        }
-                    })
-                    .catch(error => {
-                        reject(new Error(`Erreur lors de la vérification du fichier: ${error.message}`));
-                    });
+        // Afficher les dimensions du canvas pour débogage
+        const logCanvasDimensions = () => {
+            console.log('Canvas dimensions:', {
+                clientWidth: canvas.clientWidth,
+                clientHeight: canvas.clientHeight,
+                width: canvas.width,
+                height: canvas.height
             });
-        }
-
-        // Chargement de l'animation
-        async function loadAnimation() {
+        };
+        
+        // Définir les dimensions du canvas pour qu'elles correspondent à la taille de l'écran
+        const setCanvasDimensions = () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            logCanvasDimensions();
+        };
+        
+        window.addEventListener('resize', setCanvasDimensions);
+        setCanvasDimensions();
+        
+        // Charger le fichier Rive
+        statusElement.textContent = "Initialisation de Rive...";
+        
+        // Chemin vers le fichier .riv - assurez-vous que ce chemin est exact
+        const rivePath = 'koolchaine_v1.riv';
+        
+        // Logs pour le débogage
+        console.log('Tentative de chargement du fichier:', rivePath);
+        
+        // Utilisation de la nouvelle version de l'API Rive
+        const loadRive = async () => {
             try {
-                statusElement.textContent = "Vérification du fichier Rive...";
+                if (!window.rive) {
+                    throw new Error("La bibliothèque Rive n'a pas été chargée correctement");
+                }
                 
-                // Vérifiez si le fichier existe
+                statusElement.textContent = "Chargement du fichier Rive...";
+                
+                // Vérifier l'existence du fichier
                 try {
-                    await checkFileExists('koolchaine_v1.riv');
-                    statusElement.textContent = "Fichier trouvé, chargement de l'animation...";
-                } catch (error) {
-                    statusElement.innerHTML = `<strong>Erreur:</strong> ${error.message}<br>Vérifiez que le fichier existe dans votre dépôt GitHub.`;
-                    console.error(error);
+                    const response = await fetch(rivePath, { method: 'HEAD' });
+                    if (!response.ok) {
+                        throw new Error(`Le fichier ${rivePath} est introuvable (statut: ${response.status})`);
+                    }
+                } catch (fetchError) {
+                    statusElement.innerHTML = `<strong>Erreur:</strong> Impossible d'accéder au fichier Rive.<br>Vérifiez que le fichier existe et est accessible.`;
+                    console.error('Erreur de fetch:', fetchError);
                     return;
                 }
-
-                // Essayez de charger l'animation
+                
+                // Initialiser le runtime Rive
                 const r = new rive.Rive({
-                    src: 'koolchaine_v1.riv',
-                    canvas: document.getElementById('canvas'),
+                    src: rivePath,
+                    canvas: canvas,
                     autoplay: true,
+                    layout: new rive.Layout({
+                        fit: rive.Fit.Cover
+                    }),
                     onLoad: () => {
                         statusElement.style.display = 'none';
-                        console.log('Animation chargée avec succès');
+                        console.log('Animation Rive chargée avec succès');
                     },
-                    onLoadError: (error) => {
-                        statusElement.innerHTML = `<strong>Erreur de chargement:</strong> ${error.message}`;
-                        console.error('Erreur de chargement:', error);
+                    onLoadError: (err) => {
+                        console.error('Erreur de chargement Rive:', err);
+                        statusElement.innerHTML = `<strong>Erreur de chargement:</strong> ${err}<br><br>Conseil: Vérifiez que le fichier .riv est bien dans votre dépôt GitHub et que son nom est exactement 'koolchaine_v1.riv'`;
                     }
                 });
-
-                // Vérification supplémentaire après un délai
+                
+                // Vérification après délai
                 setTimeout(() => {
                     if (statusElement.style.display !== 'none') {
-                        statusElement.innerHTML = `<strong>Problème de chargement</strong><br>L'animation n'a pas pu être initialisée correctement.`;
+                        console.log('Animation non chargée après timeout');
+                        statusElement.innerHTML += '<br><br>Essayez de rafraîchir la page ou vérifiez la console pour plus de détails.';
                     }
-                }, 5000);
+                }, 8000);
                 
             } catch (error) {
-                statusElement.innerHTML = `<strong>Erreur:</strong> ${error.message}`;
-                console.error('Erreur générale:', error);
+                console.error('Erreur lors de l\'initialisation:', error);
+                statusElement.innerHTML = `<strong>Erreur:</strong> ${error.message}<br><br>Veuillez vérifier la console pour plus de détails.`;
             }
-        }
-
-        // Démarrer le chargement quand la page est prête
-        document.addEventListener('DOMContentLoaded', loadAnimation);
+        };
+        
+        // Exécuter lorsque la page est chargée
+        window.addEventListener('DOMContentLoaded', loadRive);
     </script>
 </body>
 </html>
